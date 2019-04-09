@@ -26,11 +26,9 @@ public class Controller2D : MonoBehaviour
 
 	[SerializeField]
 	[Header("Input")]
-	private List<KeyCode> /*moveRightKeys,*/ /*moveLeftKeys,*/ jumpKeys;
+	private List<KeyCode> moveRightKeys, moveLeftKeys, jumpKeys;
 
-	//public List<KeyCode> MoveRightKeys { get => moveRightKeys; set => moveRightKeys = value; }
-	//public List<KeyCode> MoveLeftKeys { get => moveLeftKeys; set => moveLeftKeys = value; }
-	public List<KeyCode> JumpKeys { get => jumpKeys; set => jumpKeys = value; }
+
 
 	private void Awake()
 	{
@@ -44,14 +42,19 @@ public class Controller2D : MonoBehaviour
 	private void Update()
 	{
 		GetInput();
-		if (Input.GetKey(KeyCode.R))
+		if (Input.GetMouseButton(0)&&!isGrounded)
 		{
 			rb2d.gravityScale = gravity / 2;
 			rb2d.mass = weight / 2;
 
 		}
 		else
+		{
 			rb2d.gravityScale = gravity;
+			rb2d.mass = weight;
+
+		}
+
 	}
 	private void FixedUpdate()
 	{
@@ -69,32 +72,38 @@ public class Controller2D : MonoBehaviour
 		isGrounded = rb2d.velocity.y == 0;
 		if (IsStopped) return;
 
-		if (isGrounded && (Input.GetAxis("Vertical") > 0 || (JumpKeys.Count > 0 && jumpKeys.Any(k => k != KeyCode.None && Input.GetKey(k)))))
+		if (isGrounded && (Input.GetAxis("Jump") > 0 || (jumpKeys.Count > 0 && jumpKeys.Any(k => k != KeyCode.None && Input.GetKey(k)))))
 		{
 			rb2d.velocity = new Vector2(rb2d.velocity.x, JumpHeight);
 			isGrounded = false;
 		}
-		moveVelocity = Input.GetAxis("Horizontal") * moveSpeed;
-		#region other input
-		///////////////////////////////////////////////////////////////// enables own input, must be uncommented property list
-		//if (moveLeftKeys.Any(k => Input.GetKey(k)))
-		//{
-		//	moveVelocity = //-MoveSpeed;
-		//}
-		//else if (MoveRightKeys.Any(k => Input.GetKey(k)))
-		//{
-		//	moveVelocity = MoveSpeed;
-		//}
-		//if (jumpKeys.Any(k => Input.GetKey(k)))
-		//{
-		//	if (isGrounded)
-		//	{
-		//		rb2d.velocity = new Vector2(rb2d.velocity.x, JumpHeight);
-		//		isGrounded = false;
-		//	}
-		//}
-		//////////////////////////////////////////////////////////////////
-		#endregion
+		if (Input.GetAxis("Horizontal") > 0 || Input.GetAxis("Horizontal") < 0)
+		{
+			moveVelocity = Input.GetAxis("Horizontal") * moveSpeed;
+		}
+		else
+		{
+			if (moveLeftKeys.Any(k => Input.GetKey(k)))
+			{
+				moveVelocity = -MoveSpeed;
+				GetComponent<SpriteRenderer>().flipX = true;
+			}
+			else if (moveRightKeys.Any(k => Input.GetKey(k)))
+			{
+				moveVelocity = MoveSpeed;
+				GetComponent<SpriteRenderer>().flipX = false;
+
+			}
+			if (jumpKeys.Any(k => Input.GetKey(k)))
+			{
+				if (isGrounded)
+				{
+					rb2d.velocity = new Vector2(rb2d.velocity.x, JumpHeight);
+					isGrounded = false;
+				}
+			}
+		}
+		
 	}
 	/// <summary>
 	/// locks movement
